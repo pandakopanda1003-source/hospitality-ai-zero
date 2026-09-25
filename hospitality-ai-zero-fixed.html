@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#111827" />
+<title>Hospitality Lab — 0円検証版</title>
+<style>
+:root{--bg:#f7f6f3;--card:#fff;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--accent:#111827;--soft:#f1efe9;--ok:#166534;--warn:#92400e}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:var(--bg);color:var(--ink)}
+.shell{max-width:760px;margin:0 auto;min-height:100vh;padding:22px 16px 100px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}.brand{font-weight:800;letter-spacing:.02em}.badge{font-size:12px;background:#e9f7ef;color:#166534;border-radius:999px;padding:6px 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin:12px 0;box-shadow:0 4px 20px rgba(0,0,0,.03)}
+h1{font-size:28px;line-height:1.25;margin:8px 0}h2{font-size:20px;margin:0 0 12px}h3{font-size:16px;margin:16px 0 8px}p{line-height:1.75}.muted{color:var(--muted);font-size:14px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{padding:14px;background:var(--soft);border-radius:16px}.stat b{font-size:22px;display:block}
+button,.btn{appearance:none;border:0;border-radius:14px;background:var(--accent);color:#fff;padding:13px 16px;font-size:15px;font-weight:700;width:100%;cursor:pointer}.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}.danger{background:#7f1d1d}.small{padding:9px 12px;font-size:13px;width:auto}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px 13px;background:#fff;font-size:16px;color:var(--ink)}textarea{min-height:150px;resize:vertical}label{font-size:13px;color:var(--muted);display:block;margin:12px 0 6px}.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:10}nav .navin{max-width:760px;width:100%;display:grid;grid-template-columns:repeat(4,1fr)}nav button{background:transparent;color:var(--muted);font-size:12px;border-radius:0;padding:13px 4px}.active{color:var(--ink)!important;font-weight:800}
+.hidden{display:none!important}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:var(--soft);font-size:12px;margin:2px}.score{font-size:52px;font-weight:900;letter-spacing:-.05em}.bar{height:10px;background:#ececec;border-radius:999px;overflow:hidden}.bar>i{display:block;height:100%;background:#111827;border-radius:999px}.q{margin:18px 0}.choices{display:grid;gap:8px}.choice{background:#fff;color:var(--ink);border:1px solid var(--line);text-align:left}.choice.sel{background:#111827;color:#fff}.source{border-left:3px solid #d1d5db;padding-left:12px;margin:12px 0}.notice{background:#fffbeb;color:#78350f;padding:12px;border-radius:14px;font-size:13px;line-height:1.6}.ok{background:#f0fdf4;color:#14532d}.list{display:grid;gap:8px}.item{border:1px solid var(--line);border-radius:14px;padding:12px}.type{font-size:34px;font-weight:900}.kicker{font-size:12px;font-weight:800;letter-spacing:.12em;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="top"><div class="brand">Hospitality Lab</div><span class="badge">0円・端末内保存</span></div>
+
+  <main id="home" class="page">
+    <div class="card"><div class="kicker">TODAY</div><h1>接客を、感覚ではなく<br>練習できるものに。</h1><p class="muted">教材に沿ってロープレを振り返る、完全ローカルの検証版です。入力した教材・会話は外部サーバーへ送信しません。</p><button onclick="go('practice')">今日のロープレを始める</button></div>
+    <div class="grid"><div class="stat"><span class="muted">LEVEL</span><b id="homeLevel">1</b></div><div class="stat"><span class="muted">XP</span><b id="homeXp">0</b></div><div class="stat"><span class="muted">平均スコア</span><b id="homeAvg">—</b></div><div class="stat"><span class="muted">練習回数</span><b id="homeCount">0</b></div></div>
+    <div class="card"><h2>あなたの接客タイプ</h2><div id="homeType" class="muted">まだ診断していません。</div><button class="ghost" style="margin-top:12px" onclick="go('diagnosis')">4タイプ診断をする</button></div>
+  </main>
+
+  <main id="diagnosis" class="page hidden">
+    <div class="card"><div class="kicker">STYLE CHECK</div><h1>接客スタイル診断</h1><p class="muted">正解・不正解ではなく、普段どんな対応を選びやすいかを見る12問です。</p><div id="questions"></div><button id="diagSubmit" onclick="finishDiagnosis()">診断結果を見る</button></div>
+    <div id="diagResult" class="card hidden"></div>
+  </main>
+
+  <main id="practice" class="page hidden">
+    <div class="card"><div class="kicker">ROLE PLAY</div><h1>今日のロープレ</h1><label>シナリオ</label><select id="scenario" onchange="updateScenario()"></select><div id="scenarioDetail" class="notice" style="margin-top:12px"></div><label>会話の文字起こし</label><textarea id="transcript" placeholder="例）患者：初めてなので少し怖くて…\nスタッフ：そうですよね。初めてだと不安ですよね…"></textarea><p class="muted">iPhoneならキーボードの音声入力を使えば、0円で会話を文字にできます。</p><button onclick="analyzeLocal()">教材に沿って診断する</button></div>
+    <div id="result" class="hidden"></div>
+  </main>
+
+  <main id="materials" class="page hidden">
+    <div class="card"><div class="kicker">KNOWLEDGE</div><h1>教材を登録</h1><div class="notice">この0円版は、教材本文を端末内に保存します。市販書籍は利用許諾・著作権に注意し、まずは自作マニュアルや許諾済み教材で試してください。</div><label>教材名</label><input id="matTitle" placeholder="例：接遇マニュアル"/><label>教材本文</label><textarea id="matText" placeholder="ここに教材の文章を貼り付け"></textarea><div class="row"><button onclick="addMaterial()">教材を追加</button><label class="btn ghost" style="margin:0;text-align:center">TXT/MD読込<input id="fileInput" type="file" accept=".txt,.md,text/plain,text/markdown" hidden /></label></div></div>
+    <div class="card"><h2>登録済み教材</h2><div id="materialList" class="list"></div></div>
+  </main>
+
+  <main id="mypage" class="page hidden">
+    <div class="card"><div class="kicker">MY PAGE</div><h1>成長記録</h1><div id="profileBox"></div></div>
+    <div class="card"><h2>履歴</h2><div id="historyList" class="list"></div></div>
+    <div class="card"><h2>データ管理</h2><p class="muted">機種変更やテスト共有用にJSONでバックアップできます。</p><div class="row"><button class="ghost" onclick="exportData()">書き出す</button><label class="btn ghost" style="margin:0;text-align:center">読み込む<input id="importInput" type="file" accept="application/json" hidden /></label></div><button class="danger" style="margin-top:10px" onclick="resetData()">端末内データを削除</button></div>
+  </main>
+</div>
+<nav><div class="navin"><button data-page="home" class="active" onclick="go('home')">ホーム</button><button data-page="practice" onclick="go('practice')">ロープレ</button><button data-page="materials" onclick="go('materials')">教材</button><button data-page="mypage" onclick="go('mypage')">マイページ</button></div></nav>
+<script>
+const KEY='hospitalityLabZeroV2';
+const defaultState={type:null,xp:0,history:[],materials:[],answers:{}};
+let state=load();
+function load(){try{return {...defaultState,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){return {...defaultState}}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));renderAll()}
+function go(id){document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));window.scrollTo({top:0,behavior:'smooth'});if(id==='mypage')renderProfile();if(id==='materials')renderMaterials();if(id==='home')renderHome()}
+const typeInfo={
+  empathy:{name:'共感型',desc:'相手の感情を受け止め、安心感をつくるのが得意。',tip:'説明に進む前に、相手の不安や期待を一度言葉にして返すのが強み。'},
+  logical:{name:'ロジカル型',desc:'情報を整理し、分かりやすく説明するのが得意。',tip:'正確さに加えて、相手の気持ちを拾う一言を先に入れるとさらに伝わる。'},
+  proposal:{name:'提案型',desc:'ニーズをつかみ、選択肢を提案するのが得意。',tip:'提案の前に「何を一番大事にしたいか」を確認すると押し売り感が減る。'},
+  closing:{name:'クロージング型',desc:'次の一歩を明確にし、行動につなげるのが得意。',tip:'決断を急がせず、迷いの理由を一度確認すると安心感が上がる。'}
+};
+const questions=[
+ ['患者様が不安そうなとき、最初にしやすい対応は？',['気持ちを受け止める','状況を整理して説明する','合いそうな選択肢を示す','次に何をするか明確にする']],
+ ['施術を迷っている方には？',['迷う気持ちを聞く','メリット・注意点を整理する','希望に合わせて候補を絞る','予約までの流れを案内する']],
+ ['説明中に反応が薄いときは？',['表情や温度感を確認する','理解できているか確認する','別の説明方法を提案する','要点をまとめて次へ進む']],
+ ['価格が高いと言われたら？',['負担感に共感する','費用の内訳を説明する','優先順位に合う案を出す','検討方法を具体化する']],
+ ['初回来院の方には？',['緊張をほぐす','全体の流れを説明する','希望を聞いて案内する','次回まで見据えて案内する']],
+ ['クレーム気味の方には？',['まず気持ちを受け止める','事実関係を整理する','解決策を提示する','着地点を明確にする']],
+ ['カウンセリングで大切なのは？',['安心して話せる空気','情報の正確さ','その人に合う提案','行動しやすい整理']],
+ ['会話で自然にやっているのは？',['相槌や共感','要約や整理','選択肢提示','結論づけ']],
+ ['褒められやすいのは？',['話しやすさ','説明の分かりやすさ','提案の上手さ','決断の後押し']],
+ ['苦手になりやすいのは？',['説明が長くなること','感情への声かけ','提案を控えすぎること','待つこと']],
+ ['理想の接客は？',['心が軽くなる接客','納得できる接客','自分に合うと思える接客','迷いが整理される接客']],
+ ['最後に意識するのは？',['気持ちよく帰れるか','疑問が残っていないか','提案が合っていたか','次の行動が分かるか']]
+];
+const typeKeys=['empathy','logical','proposal','closing'];
+function renderQuestions(){const el=document.getElementById('questions');el.innerHTML=questions.map((q,i)=>`<div class="q"><b>${i+1}. ${q[0]}</b><div class="choices">${q[1].map((c,j)=>`<button type="button" class="choice ${state.answers[i]===j?'sel':''}" onclick="pick(${i},${j},this)">${c}</button>`).join('')}</div></div>`).join('')}
+function pick(i,j,btn){state.answers[i]=j;save();btn.parentElement.querySelectorAll('.choice').forEach(x=>x.classList.remove('sel'));btn.classList.add('sel')}
+function finishDiagnosis(){if(Object.keys(state.answers).length<questions.length){alert('12問すべて答えてね');return}const scores=[0,0,0,0];Object.values(state.answers).forEach(v=>scores[v]++);const max=Math.max(...scores);const idx=scores.indexOf(max);state.type=typeKeys[idx];state.xp+=30;save();const t=typeInfo[state.type];const r=document.getElementById('diagResult');r.classList.remove('hidden');r.innerHTML=`<div class="kicker">YOUR TYPE</div><div class="type">${t.name}</div><p>${t.desc}</p><div class="notice ok"><b>伸ばし方</b><br>${t.tip}</div><p class="muted">共感 ${scores[0]} / ロジカル ${scores[1]} / 提案 ${scores[2]} / クロージング ${scores[3]}</p><button onclick="go('practice')">このタイプでロープレする</button>`;r.scrollIntoView({behavior:'smooth'})}
+const scenarios=[
+ {name:'初めての美容医療',detail:'患者：美容医療が初めてで、痛みや失敗が少し怖い。安心して相談できる対応を練習。'},
+ {name:'価格で迷っている',detail:'患者：施術には興味があるが予算が気になる。押し売りせず希望と優先順位を確認する。'},
+ {name:'待ち時間への不満',detail:'患者：予約したのに待たされ少し不機嫌。事実説明より先に感情への配慮を意識する。'},
+ {name:'施術後の不安',detail:'患者：施術後の変化が気になっている。断定せず状況確認と必要な案内を行う。'},
+ {name:'施術を決めきれない',detail:'患者：複数メニューで迷っている。希望を整理し、自分で選べるよう支援する。'},
+ {name:'再来につながる一言',detail:'患者：施術を終えて帰る場面。売り込みではなく、安心してまた相談できる余韻をつくる。'}
+];
+function initScenario(){const s=document.getElementById('scenario');s.innerHTML=scenarios.map((x,i)=>`<option value="${i}">${x.name}</option>`).join('');updateScenario()}
+function updateScenario(){const i=Number(document.getElementById('scenario').value||0);document.getElementById('scenarioDetail').textContent=scenarios[i].detail}
+function addMaterial(){const title=document.getElementById('matTitle').value.trim();const text=document.getElementById('matText').value.trim();if(!title||!text){alert('教材名と教材本文を入れてね');return}state.materials.push({id:Date.now(),title,text,created:new Date().toISOString()});state.xp+=10;document.getElementById('matTitle').value='';document.getElementById('matText').value='';save();alert('教材を追加したよ')}
+function renderMaterials(){const el=document.getElementById('materialList');if(!state.materials.length){el.innerHTML='<div class="muted">まだ教材がありません。まずは接遇マニュアルの一部を貼り付けて試してね。</div>';return}el.innerHTML=state.materials.map(m=>`<div class="item"><b>${esc(m.title)}</b><p class="muted">${esc(m.text.slice(0,120))}${m.text.length>120?'…':''}</p><button class="ghost small" onclick="removeMaterial(${m.id})">削除</button></div>`).join('')}
+function removeMaterial(id){if(confirm('この教材を削除する？')){state.materials=state.materials.filter(m=>m.id!==id);save()}}
+function normalize(s){return s.toLowerCase().replace(/[\s、。！？!?,.「」『』（）()：:・]/g,'')}
+function keywords(text){const words=['不安','怖','心配','痛','予算','価格','希望','悩','気持','安心','理解','説明','確認','選択','提案','一緒','大丈夫','ありがとうございます','お待たせ','申し訳','無理','検討','優先'];return words.filter(w=>text.includes(w))}
+function findEvidence(transcript){const mats=state.materials;if(!mats.length)return[];const ks=keywords(transcript);let candidates=[];mats.forEach(m=>{const parts=m.text.split(/(?<=[。！？\n])/).filter(x=>x.trim().length>8);parts.forEach(p=>{let score=0;ks.forEach(k=>{if(p.includes(k))score+=2});const tks=keywords(p);tks.forEach(k=>{if(transcript.includes(k))score++});if(score>0)candidates.push({title:m.title,text:p.trim(),score})})});return candidates.sort((a,b)=>b.score-a.score).slice(0,3)}
+function analyzeLocal(){const t=document.getElementById('transcript').value.trim();if(t.length<15){alert('会話をもう少し入力してね');return}const has=(arr)=>arr.some(x=>t.includes(x));let s={共感:45,傾聴:45,安心感:45,先回り:40,説明力:45,提案力:40};if(has(['そうですよね','不安ですよね','怖いですよね','お気持ち','心配ですよね'])){s.共感+=30;s.安心感+=15}if(has(['いかがですか','どのように','何が','一番','教えて','伺って'])){s.傾聴+=28;s.提案力+=10}if(has(['ご安心','一緒に','無理に','大丈夫','確認します','サポート'])){s.安心感+=25}if(has(['先に','事前に','念のため','もし','その場合','あらかじめ'])){s.先回り+=30}if(has(['理由','こちらは','つまり','具体的には','違いは','流れ'])){s.説明力+=28}if(has(['おすすめ','選択肢','ご希望','優先','合わせて','いかがでしょう'])){s.提案力+=30}if((t.match(/？|\?/g)||[]).length>=2){s.傾聴+=12}
+Object.keys(s).forEach(k=>s[k]=Math.min(100,s[k]));const vals=Object.values(s);const total=Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);const evidence=findEvidence(t);const strengths=Object.entries(s).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>x[0]);const weak=Object.entries(s).sort((a,b)=>a[1]-b[1]).slice(0,2).map(x=>x[0]);
+const history={id:Date.now(),date:new Date().toISOString(),scenario:scenarios[Number(document.getElementById('scenario').value||0)].name,score:total,scores:s,type:state.type};state.history.unshift(history);state.xp+=20;save();const res=document.getElementById('result');res.classList.remove('hidden');res.innerHTML=`<div class="card"><div class="kicker">RESULT</div><div class="score">${total}</div><p class="muted">Hospitality Score</p>${Object.entries(s).map(([k,v])=>`<div style="margin:12px 0"><div class="row"><b>${k}</b><span style="text-align:right">${v}</span></div><div class="bar"><i style="width:${v}%"></i></div></div>`).join('')}<h3>良かったところ</h3><p>${strengths.join('・')}が比較的強く出ています。</p><h3>次に意識するところ</h3><p>${weak.join('・')}を意識して、相手の感情や希望を一度確認してから説明・提案へ進むと、より自然な接客になります。</p>${state.type?`<div class="notice ok"><b>${typeInfo[state.type].name}向けコーチング</b><br>${typeInfo[state.type].tip}</div>`:''}</div><div class="card"><h2>教材から拾った根拠</h2>${evidence.length?evidence.map(e=>`<div class="source"><b>${esc(e.title)}</b><p>${esc(e.text)}</p></div>`).join(''):'<div class="notice">まだ教材との一致根拠が少ないです。教材を追加すると、関連する文章を優先表示できます。</div>'}</div>`;res.scrollIntoView({behavior:'smooth'})}
+function renderHome(){document.getElementById('homeXp').textContent=state.xp;document.getElementById('homeLevel').textContent=Math.floor(state.xp/100)+1;document.getElementById('homeCount').textContent=state.history.length;document.getElementById('homeAvg').textContent=state.history.length?Math.round(state.history.reduce((a,b)=>a+b.score,0)/state.history.length):'—';document.getElementById('homeType').innerHTML=state.type?`<b>${typeInfo[state.type].name}</b><br>${typeInfo[state.type].desc}`:'まだ診断していません。'}
+function renderProfile(){const avg=state.history.length?Math.round(state.history.reduce((a,b)=>a+b.score,0)/state.history.length):0;document.getElementById('profileBox').innerHTML=`<div class="grid"><div class="stat"><span class="muted">LEVEL</span><b>${Math.floor(state.xp/100)+1}</b></div><div class="stat"><span class="muted">XP</span><b>${state.xp}</b></div><div class="stat"><span class="muted">平均</span><b>${state.history.length?avg:'—'}</b></div><div class="stat"><span class="muted">回数</span><b>${state.history.length}</b></div></div>${state.type?`<p><span class="pill">${typeInfo[state.type].name}</span> ${typeInfo[state.type].desc}</p>`:''}`;const h=document.getElementById('historyList');h.innerHTML=state.history.length?state.history.map(x=>`<div class="item"><b>${esc(x.scenario)}</b><span class="pill">${x.score}点</span><div class="muted">${new Date(x.date).toLocaleString('ja-JP')}</div></div>`).join(''):'<div class="muted">まだ履歴がありません。</div>'}
+function renderAll(){renderHome();renderMaterials();renderProfile();renderQuestions()}
+function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='hospitality-lab-backup.json';a.click();URL.revokeObjectURL(url)}
+function resetData(){if(confirm('端末内の教材・診断・履歴をすべて削除する？')){localStorage.removeItem(KEY);state={...defaultState,history:[],materials:[],answers:{}};renderAll();go('home')}}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+document.getElementById('fileInput').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;const text=await f.text();document.getElementById('matTitle').value=f.name.replace(/\.(txt|md)$/i,'');document.getElementById('matText').value=text});
+document.getElementById('importInput').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());state={...defaultState,...d};save();alert('読み込みました')}catch(err){alert('JSONを読み込めませんでした')}});
+initScenario();renderAll();
+</script>
+</body></html>
